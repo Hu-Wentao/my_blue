@@ -88,6 +88,7 @@ class FindDevicesScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Find Devices'),
       ),
+      // 刷新指示器
       body: RefreshIndicator(
         onRefresh: () =>
             FlutterBlue.instance.startScan(timeout: Duration(seconds: 4)),
@@ -125,6 +126,7 @@ class FindDevicesScreen extends StatelessWidget {
                           .toList(),
                     ),
               ),
+              Divider(),
               StreamBuilder<List<ScanResult>>(
                 stream: FlutterBlue.instance.scanResults,
                 initialData: [],
@@ -161,7 +163,7 @@ class FindDevicesScreen extends StatelessWidget {
             return FloatingActionButton(
                 child: Icon(Icons.search),
                 onPressed: () => FlutterBlue.instance
-                    .startScan(timeout: Duration(seconds: 4)));
+                    .startScan(timeout: Duration(seconds: 4)));   ///############ 搜索设备
           }
         },
       ),
@@ -230,7 +232,7 @@ class DeviceScreen extends StatelessWidget {
                   text = snapshot.data.toString().substring(21).toUpperCase();
                   break;
               }
-              return FlatButton(
+              return FlatButton(  ///########################################### appBar 上的按钮
                   onPressed: onPressed,
                   child: Text(
                     text,
