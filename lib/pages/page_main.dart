@@ -15,7 +15,6 @@ class _MainPageState extends State<MainPage> {
     // todo 后台信息收集任务...
     // BackgroundCollectingTask _collectingTask;   ///
 
-
     return Scaffold(
       appBar: AppBar(
         title: Text("蓝牙功能"),
@@ -27,7 +26,9 @@ class _MainPageState extends State<MainPage> {
             /// 列表
             ListTile(
               title: RaisedButton(child: Text("开始"), onPressed: () {
+
                 print("lalal");
+
               }),
             )
           ],
