@@ -2,12 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 /// 作为所有BloC的通用接口
-abstract class BlocBase {
+abstract class BaseBloc {
   void dispose();
 }
 
 /// BLoC provider
-class BlocProvider<T extends BlocBase> extends StatefulWidget {
+class BlocProvider<T extends BaseBloc> extends StatefulWidget {
   final T bloc;
   final Widget child;
 
@@ -18,7 +18,7 @@ class BlocProvider<T extends BlocBase> extends StatefulWidget {
   _BlocProviderState<T> createState() => new _BlocProviderState<T>();
 
   /// 用来获取 bloc
-  static T of<T extends BlocBase>(BuildContext context) {
+  static T of<T extends BaseBloc>(BuildContext context) {
     // 获取BlocProvider的 T 保存到 变量 type 中
     final Type type = _typeOf<BlocProvider<T>>();
 
@@ -30,7 +30,7 @@ class BlocProvider<T extends BlocBase> extends StatefulWidget {
   static Type _typeOf<T>() => T;
 }
 
-class _BlocProviderState<T> extends State<BlocProvider<BlocBase>> {
+class _BlocProviderState<T> extends State<BlocProvider<BaseBloc>> {
   @override
   Widget build(BuildContext context) {
     return widget.child;

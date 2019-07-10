@@ -1,5 +1,4 @@
 //import 'package:flutter/material.dart';
-//import 'package:my_blue/page_main.dart';
 //import 'package:my_blue/race_device.dart';
 //
 //void main()=>runApp(new MyApp());

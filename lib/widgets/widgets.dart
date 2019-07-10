@@ -5,6 +5,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
+import 'radius_text_botton.dart';
+
 class ScanResultTile extends StatelessWidget {
   /// 构造函数,
   const ScanResultTile({Key key, this.result, this.onTap}) : super(key: key);
@@ -91,10 +93,11 @@ class ScanResultTile extends StatelessWidget {
     return ExpansionTile(
       title: _buildTitle(context),
       leading: Text(result.rssi.toString()),
-      trailing: RaisedButton(
-        child: Text('CONNECT'),
-        color: Colors.black,
-        textColor: Colors.white,
+      trailing: RadiusButton(
+        child: Text(
+          '连接',
+          style: TextStyle(fontSize: 12),
+        ),
         onPressed: (result.advertisementData.connectable) ? onTap : null,
       ),
       children: <Widget>[
