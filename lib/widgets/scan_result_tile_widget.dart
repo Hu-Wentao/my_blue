@@ -88,8 +88,15 @@ class ScanResultTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
-      title: _buildTitle(context),
-      leading: Text(result.rssi.toString()),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          _buildTitle(context),
+          Text(result.rssi.toString()),
+        ],
+      ),
+      leading: Icon(Icons.bluetooth),
+//      leading: Text(result.rssi.toString()),
       trailing: RadiusButton(
         child: Text(
           '连接',
