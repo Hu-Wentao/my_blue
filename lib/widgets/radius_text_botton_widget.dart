@@ -6,27 +6,29 @@ class RadiusButton extends StatelessWidget {
 
   final Color textColor;
   final Color bgColor;
+  final Color disableBgColor;
 
   final double sizeHeight;
   final double sizeWidth;
   final double borderRadius;
-  RadiusButton(
-      {Key key,
-      @required this.child,
-      this.onPressed,
-      this.textColor: Colors.white,
-      this.bgColor: Colors.grey,
-      this.sizeHeight,
-      this.sizeWidth: 32,
-      this.borderRadius: 12,})
-      : super(key: key);
+
+  RadiusButton({
+    Key key,
+    @required this.child,
+    this.onPressed,
+    this.textColor: Colors.white,
+    this.bgColor,
+    this.disableBgColor: Colors.grey,
+    this.sizeHeight,
+    this.sizeWidth: 32,
+    this.borderRadius: 12,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Material(
       child: SizedBox(
         height: sizeWidth,
-
         child: FlatButton(
           child: child,
           textColor: textColor,
@@ -34,7 +36,9 @@ class RadiusButton extends StatelessWidget {
         ),
       ),
       borderRadius: BorderRadius.circular(borderRadius),
-      color: bgColor,
+      color: onPressed == null
+          ? disableBgColor
+          : (bgColor ?? Theme.of(context).primaryColor),
     );
   }
 }

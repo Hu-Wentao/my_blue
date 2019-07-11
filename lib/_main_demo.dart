@@ -21,9 +21,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:my_blue/widgets/widgets.dart';
+import 'package:my_blue/widgets/characteristic_tile.dart';
+import 'package:my_blue/widgets/descriptor_tile.dart';
+import 'package:my_blue/widgets/service_tile.dart';
 
-import 'widgets/scan_result_tile_widget.dart';
+import 'widgets/scan_result_tile.dart';
 
 void main() {
   runApp(FlutterBlueApp());
@@ -222,11 +224,11 @@ class DeviceScreen extends StatelessWidget {
               switch (snapshot.data) {
                 case BluetoothDeviceState.connected:
                   onPressed = () => device.disconnect();
-                  text = 'DISCONNECT';
+                  text = '断开';
                   break;
                 case BluetoothDeviceState.disconnected:
                   onPressed = () => device.connect();
-                  text = 'CONNECT';
+                  text = '连接';
                   break;
                 default:
                   onPressed = null;

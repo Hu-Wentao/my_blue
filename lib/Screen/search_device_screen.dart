@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:my_blue/widgets/radius_container_widget.dart';
 import 'package:my_blue/widgets/radius_text_botton_widget.dart';
-import 'package:my_blue/widgets/scan_result_tile_widget.dart';
+import 'package:my_blue/widgets/scan_result_tile.dart';
 import 'package:my_blue/widgets/text_divider_widget.dart';
 
 import 'device_screen.dart';
@@ -96,7 +96,7 @@ class SearchDeviceScreen extends StatelessWidget {
                           .toList(),
                     ),
                   ),
-                  TextDivider("可用设备"),
+                  TextDivider("扫描结果"),
                   StreamBuilder<List<ScanResult>>(
                     stream: FlutterBlue.instance.scanResults,
                     initialData: [],
