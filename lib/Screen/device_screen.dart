@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:my_blue/widgets/widgets.dart';
 
+/// 设备详情页
 class DeviceScreen extends StatelessWidget {
-  const DeviceScreen({Key key, this.device}) : super(key: key);
-
   final BluetoothDevice device;
+  const DeviceScreen({Key key, this.device}) : super(key: key);
 
   List<Widget> _buildServiceTiles(List<BluetoothService> services) {
     return services

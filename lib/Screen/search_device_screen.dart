@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:my_blue/widgets/radius_container.dart';
-import 'package:my_blue/widgets/radius_text_botton.dart';
-import 'package:my_blue/widgets/text_divider.dart';
-import 'package:my_blue/widgets/widgets.dart';
+import 'package:my_blue/widgets/radius_container_widget.dart';
+import 'package:my_blue/widgets/radius_text_botton_widget.dart';
+import 'package:my_blue/widgets/scan_result_tile_widget.dart';
+import 'package:my_blue/widgets/text_divider_widget.dart';
 
 import 'device_screen.dart';
 
@@ -75,7 +75,7 @@ class SearchDeviceScreen extends StatelessWidget {
                                 trailing: StreamBuilder<BluetoothDeviceState>(
                                   stream: data.state,
                                   initialData:
-                                      BluetoothDeviceState.disconnected,
+                                  BluetoothDeviceState.disconnected,
                                   builder: (c, snapshot) {
                                     if (snapshot.data ==
                                         BluetoothDeviceState.connected) {
@@ -83,12 +83,13 @@ class SearchDeviceScreen extends StatelessWidget {
                                         child: Text("打开"),
                                         onPressed: () => Navigator.of(context)
                                             .push(MaterialPageRoute(
-                                                builder: (context) =>
-                                                    DeviceScreen(
-                                                        device: data))),
+                                            builder: (context) =>
+                                                DeviceScreen(
+                                                    device: data))),
                                       );
                                     }
-                                    return Text(snapshot.data.toString());
+                                    return RadiusButton(
+                                        child: Text(snapshot.data.toString()));
                                   },
                                 ),
                               )))

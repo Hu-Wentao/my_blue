@@ -23,6 +23,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:my_blue/widgets/widgets.dart';
 
+import 'widgets/scan_result_tile_widget.dart';
+
 void main() {
   runApp(FlutterBlueApp());
 }
