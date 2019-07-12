@@ -81,6 +81,7 @@ class DeviceScreen extends StatelessWidget {
                         .toList(),
                   ),
                 )
+
                 .toList(),
           ),
         )

@@ -26,8 +26,8 @@ class CharacteristicTile extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return StreamBuilder<List<int>>(
-      stream: characteristic.value,
-      initialData: characteristic.lastValue,
+      stream: characteristic.value,           // 读取结果
+      initialData: characteristic.lastValue,  // 存放上一次的结果
       builder: (c, snapshot) {
         final value = snapshot.data;
         return NoneBorderColorExpansionTile(
