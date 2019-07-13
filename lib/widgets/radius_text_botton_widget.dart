@@ -28,7 +28,8 @@ class RadiusButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       child: SizedBox(
-        height: sizeWidth,
+        height: sizeHeight,
+        width: sizeWidth,
         child: FlatButton(
           child: child,
           textColor: textColor,

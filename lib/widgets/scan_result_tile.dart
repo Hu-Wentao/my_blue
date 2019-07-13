@@ -78,28 +78,37 @@ class ScanResultTile extends StatelessWidget {
           )
         : Text("N/A");
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            deviceName,
-            Text(
-              result.device.id.toString(),
-              style: Theme.of(context).textTheme.caption,
-            )
-          ],
-        ),
-        // 信号强度
-        Text(result.rssi.toString()),
-      ],
+    return
+//      SingleChildScrollView(
+//      scrollDirection: Axis.horizontal,
+//      child:
+    Row(
+//      mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              deviceName,
+              Text(
+                result.device.id.toString(),
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.caption,
+              )
+            ],
+          ),
+          // 信号强度
+          Text(result.rssi.toString()),
+        ],
+//      ),
     );
   }
 
   Widget _buildTailing(BuildContext context) {
     return RadiusButton(
+//      sizeWidth:
+      sizeHeight: 5,
       child: Text(
         '连接',
         style: TextStyle(fontSize: 12),
