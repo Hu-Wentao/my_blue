@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:my_blue/widgets/characteristic_tile.dart';
@@ -57,13 +59,33 @@ class DeviceScreen extends StatelessWidget {
                     }),
                     //写入数据
                     /// ================== 发送数据 ===========
-                    onWritePressed: () => c.write([66, 67, 48, 49]),
+                    onWritePressed: () {
+                      const List<int> test = [
+                        13,
+                        10,
+                      ];
+                      int v = 0;
+                      new Timer.periodic(const Duration(milliseconds: 100),
+                          // 要求20个字节一包
+                          (Timer t) {
+                        c.write(
+                            [
+                                  (v ~/ 1000) + 48,
+                                  (v ~/ 100) % 10 + 48,
+                                  (v ~/ 10) % 10 + 48,
+                                  v % 10 + 48
+                                ] +
+                                test,
+                            withoutResponse: true);
+                        v++;
+                      });
+                    },
                     onNotificationPressed: () {
 //                      c.read().then((v)=>print("测试可能读取到: $v"));
                       c.setNotifyValue(!c.isNotifying);
-
                       //todo 展示. 或使用.....
-                      c.value.listen((v)=>print("######====== 接受到数据 =====#######$v"));
+                      c.value.listen(
+                          (v) => print("######====== 接受到数据 =====#######$v"));
                     },
                     //todo 描述...
                     descriptorTiles: c.descriptors
@@ -81,7 +103,6 @@ class DeviceScreen extends StatelessWidget {
                         .toList(),
                   ),
                 )
-
                 .toList(),
           ),
         )
@@ -121,7 +142,6 @@ class DeviceScreen extends StatelessWidget {
                 );
               },
             ),
-
           ],
         ),
       ),
