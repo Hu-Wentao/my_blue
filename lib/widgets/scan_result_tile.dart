@@ -22,19 +22,16 @@ class ScanResultTile extends StatelessWidget {
     final String deviceName = result.device.name;
     final String serviceUuids = result.advertisementData.serviceUuids.join(",");
 
-
-    print("####################################");
+    print("######## ScanResultTile ############################");
     print("advertiseName 广播名: $advertiseName");
     print("deviceName 设备名称: $deviceName");
-
 
     return NoneBorderColorExpansionTile(
       title: _buildTitle(context, deviceName),
       leading: _buildLeading(context),
       trailing: _buildTailing(context),
       children: <Widget>[
-        _buildAdvertiseRow(
-            context, '广播名', advertiseName),
+        _buildAdvertiseRow(context, '广播名', advertiseName),
         _buildAdvertiseRow(context, 'Tx Power Level',
             '${result.advertisementData.txPowerLevel ?? 'N/A'}'),
         _buildAdvertiseRow(
@@ -47,7 +44,7 @@ class ScanResultTile extends StatelessWidget {
             context,
             'Service UUIDs',
             (result.advertisementData.serviceUuids.isNotEmpty)
-                ? result.advertisementData.serviceUuids.join(', ').toUpperCase()
+                ? serviceUuids.toUpperCase()
                 : 'N/A'),
         _buildAdvertiseRow(context, 'Service Data',
             getNiceServiceData(result.advertisementData.serviceData) ?? 'N/A'),
@@ -56,10 +53,8 @@ class ScanResultTile extends StatelessWidget {
   }
 
   Widget _buildLeading(BuildContext context) {
-    if(result.advertisementData.localName.startsWith("RaceHF")){
-
-    }
-
+    //todo 适配特殊图标。。。。。。。。。。。。。。
+    if (result.advertisementData.localName.startsWith("RaceHF")) {}
 
     return Icon(
       Icons.bluetooth,
@@ -71,35 +66,43 @@ class ScanResultTile extends StatelessWidget {
 
   // todo deviceName 待测试
   Widget _buildTitle(BuildContext context, String deviceName) {
-    final Text deviceName = ( result.device.name.length > 0)
+    final Text deviceName = (result.device.name.length > 0)
         ? Text(
             result.device.name,
             overflow: TextOverflow.ellipsis,
           )
-        : Text("N/A");
+        : Text(
+            "N/A",
+            overflow: TextOverflow.ellipsis,
+          );
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            deviceName,
-            Text(
-              result.device.id.toString(),
-              style: Theme.of(context).textTheme.caption,
-            )
-          ],
-        ),
-        // 信号强度
-        Text(result.rssi.toString()),
-      ],
-    );
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              deviceName,
+              Wrap(children: [
+                // 信号强度
+                Text("信号强度：${result.rssi.toString()}"),
+//                Text(
+//                  result.device.id.toString(),
+////                    overflow: TextOverflow.ellipsis,
+//                  style: Theme.of(context).textTheme.caption,
+//                  softWrap: true,
+//                ),
+              ]),
+            ],
+          )
+        ]);
   }
 
   Widget _buildTailing(BuildContext context) {
     return RadiusButton(
+      sizeHeight: 35,
+      sizeWidth: 60,
       child: Text(
         '连接',
         style: TextStyle(fontSize: 12),

@@ -60,7 +60,7 @@ class SearchDeviceScreen extends StatelessWidget {
                 children: <Widget>[
                   TextDivider(
                     "已配对设备",
-                    padLTRB: [16.0, 16.0, 16.0, 8.0],
+                    padLTRB: const [16.0, 16.0, 16.0, 8.0],
                   ),
                   StreamBuilder<List<BluetoothDevice>>(
                     stream: Stream.periodic(Duration(seconds: 2))
