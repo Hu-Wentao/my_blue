@@ -7,15 +7,23 @@ import 'package:flutter_blue/flutter_blue.dart';
 ///
 class OadPage extends StatelessWidget {
   final BluetoothDevice device;
+
+//  static StreamController<NotifyInfo> notifyController = StreamController.broadcast();
+
+
   OadPage({Key key, this.device}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    Stream<List<BluetoothCharacteristic>> s =
+    Stream<NotifyInfo> s =
         Stream.fromFuture(device.discoverServices())
             .transform(_getOadService)
             .transform(_getCharacteristic)
-            .transform(_openAndListenCharNotify)
+            .transform(_listenCharNotifyAndSendHead)
             .asBroadcastStream();
+
+//    notifyController.stream.listen((notify){
+////      print("#############$notify");
+////    });
 
     return Scaffold(
       appBar: AppBar(
@@ -24,11 +32,11 @@ class OadPage extends StatelessWidget {
       body: Column(
         children: <Widget>[
           // 一个开始按钮
-//          RaisedButton(
-//            child: Text("开始升级"),
-////            onPressed: _onPress(),
-//            onPressed: _onOadStartStream(s),
-//          ),
+          RaisedButton(
+            child: Text("开始升级"),
+//            onPressed: _onPress(),
+            onPressed: _onOadStartStream(s),
+          ),
 //          StreamBuilder<List<BluetoothCharacteristic>>(
 //            stream: s,
 //            builder: (context, snapshot) {
@@ -53,7 +61,7 @@ class OadPage extends StatelessWidget {
   _onOadStartStream(Stream s) {
     print("点击了按钮。。。。");
 //    s.listen((charList) {
-    final List<int> data = [
+    final List<int> head = [
       0x06,
       0x78,
       0xff,
@@ -71,6 +79,20 @@ class OadPage extends StatelessWidget {
       0x01,
       0xff,
     ];
+    // send
+    device.discoverServices().then((service){
+      service.forEach((ser){
+        String keyUuid = ser.uuid.toString().substring(4,8);
+        if(keyUuid == "abf0" || keyUuid == "ffc0"){
+         ser.characteristics.forEach((char){
+           String keyCharUuid = char.uuid.toString().substring(4,8);
+           if(keyCharUuid == "abf1" || keyCharUuid == "ffc1"){
+             char.write(head);
+           }
+         });
+        }
+      });
+    });
 ////    final List<int> data = [
 ////      6,
 ////      120,
@@ -125,25 +147,39 @@ class OadPage extends StatelessWidget {
   });
 
   // 方案3, 第三个, 打开 1, 2, 4 这几个特征的通知
-  final StreamTransformer _openAndListenCharNotify = StreamTransformer<
+  final StreamTransformer _listenCharNotifyAndSendHead = StreamTransformer<
       List<BluetoothCharacteristic>,
-      List<BluetoothCharacteristic>>.fromHandlers(handleData: (charList, sink) {
+      NotifyInfo>.fromHandlers(handleData: (charList, sink) {
     // 这里写一个 打开并监听 特征 的通知的方法, 如果出错, 考虑等监听出结果后再sink.add
     charList.forEach((char) {
+      final String keyUuid = char.uuid.toString().substring(4, 8);
       switch (char.uuid.toString().substring(7, 8)) {
         case "1":
         case "2":
         case "4":
           char.value.listen((d) {
-            print("监听到 ${char.uuid.toString().substring(4, 8)} 的消息: $d");
+            print("监听到 $keyUuid 的消息: $d");
+//            notifyController.sink.add(NotifyInfo(charKeyUuid: keyUuid, notifyValue: d));
+            try {
+              sink.add(NotifyInfo(charKeyUuid: keyUuid, notifyValue: d));
+            }catch(e){
+              print("添加新的Notify 出错了...."+e.toString());
+            }
           });
+
       }
     });
-    sink.add(charList);
   });
 }
 
-class CharListen{
-  String charUuid;
-  String notifyInfo;
+class NotifyInfo{
+  String charKeyUuid;
+  List<int> notifyValue;
+
+  NotifyInfo({this.charKeyUuid, this.notifyValue});
+
+  @override
+  toString(){
+    return "Key UUID : $charKeyUuid, Notify: $notifyValue";
+  }
 }
