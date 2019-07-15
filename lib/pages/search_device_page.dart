@@ -87,7 +87,6 @@ class SearchDevicePage extends StatelessWidget {
             children: asyncSnapshot.data.map((asyncDevice) {
               /// 是否开启OAD 模式(进入OAD页面)
               final bool isOad = asyncDevice.name.startsWith("Race");
-
               return RadiusContainer(
                   child: ListTile(
                 leading: isOad

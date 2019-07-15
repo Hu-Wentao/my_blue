@@ -103,25 +103,25 @@ class DeviceInfoPage extends StatelessWidget {
                       //todo 展示. 或使用.....
                       c.value.listen(
 //                          (v) => print("######====== 接受到数据 =====#######$v")
-                          (v){
-                            v.forEach((v)=>print("监听到=> $v"));
-                          }
-                          );
+                          (v) {
+                        v.forEach((v) => print("监听到=> $v"));
+                      });
                     },
                     //todo 描述...
-                    descriptorTiles: c.descriptors
-                        .map(
-                          (d) => DescriptorTile(
-                            // 映射为
-                            // 描述tile
-                            descriptor: d,
-                            onReadPressed: () => d.read(), // 描述读取??
-                            onWritePressed: () {
-                              return d.write([65, 66]);
-                            }, // 描述写入??
-                          ),
-                        )
-                        .toList(),
+                    descriptorTiles:null,
+//                    c.descriptors
+//                        .map(
+//                          (d) => DescriptorTile(
+//                            // 映射为
+//                            // 描述tile
+//                            descriptor: d,
+//                            onReadPressed: () => d.read(), // 描述读取??
+//                            onWritePressed: () {
+//                              return d.write([65, 66]);
+//                            }, // 描述写入??
+//                          ),
+//                        )
+//                        .toList(),
                   ),
                 )
                 .toList(),

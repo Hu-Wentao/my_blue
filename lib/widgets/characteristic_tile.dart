@@ -42,7 +42,7 @@ class CharacteristicTile extends StatelessWidget {
                         color: Theme.of(context).textTheme.caption.color)),
               ],
             ),
-            /// 此处显示接受到的信息
+            /// 此处显示接受到的信息===========================================================
             subtitle: Text(value.toString()),
 
             contentPadding: EdgeInsets.all(0.0),
