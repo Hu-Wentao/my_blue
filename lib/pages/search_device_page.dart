@@ -84,18 +84,33 @@ class SearchDevicePage extends StatelessWidget {
               .asyncMap((_) => FlutterBlue.instance.connectedDevices),
           initialData: [],
           builder: (buildContext, asyncSnapshot) => Column(
-            children: asyncSnapshot.data.map((data) {
+            children: asyncSnapshot.data.map((asyncDevice) {
               /// 是否开启OAD 模式(进入OAD页面)
-
-              final bool isOad = data.name.startsWith("Race");
+              final bool isOad = asyncDevice.name.startsWith("Race");
 
               return RadiusContainer(
                   child: ListTile(
-                leading: RaisedButton(onPressed: null),
-                title: Text(data.name),
-                subtitle: Text(data.id.toString()),
+                leading: isOad
+                    ? StreamBuilder<BluetoothDeviceState>(
+                        stream: asyncDevice.state,
+                        initialData: BluetoothDeviceState.disconnected,
+                        builder: (c, snapshot) {
+                          if (snapshot.data == BluetoothDeviceState.connected) {
+                            return RadiusButton(
+                              sizeWidth: 64,
+                              sizeHeight: 36,
+                              child: Text("打开"),
+                              onPressed: _goToPage(!isOad, context, asyncDevice),
+                            );
+                          }
+                          return RadiusButton(
+                              child: Text(snapshot.data.toString()));
+                        },
+                      ):null,
+                title: Text(asyncDevice.name),
+                subtitle: Text(asyncDevice.id.toString()),
                 trailing: StreamBuilder<BluetoothDeviceState>(
-                  stream: data.state,
+                  stream: asyncDevice.state,
                   initialData: BluetoothDeviceState.disconnected,
                   builder: (c, snapshot) {
                     if (snapshot.data == BluetoothDeviceState.connected) {
@@ -103,7 +118,7 @@ class SearchDevicePage extends StatelessWidget {
                         sizeWidth: 64,
                         sizeHeight: 36,
                         child: Text(isOad ? "OAD" : "打开"),
-                        onPressed: _goToPage(isOad, context, data),
+                        onPressed: _goToPage(isOad, context, asyncDevice),
                       );
                     }
                     return RadiusButton(child: Text(snapshot.data.toString()));

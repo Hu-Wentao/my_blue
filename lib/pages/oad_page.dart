@@ -14,7 +14,7 @@ class OadPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<BluetoothCharacteristic> chars = new List(4);
+//    List<BluetoothCharacteristic> chars = new List(4);
 
     return Scaffold(
       appBar: AppBar(
@@ -47,16 +47,23 @@ class OadPage extends StatelessWidget {
 
 //    Stream<List<BluetoothCharacteristic>> charList =
     serviceStream
+
+
+//    Stream.fromFuture(device.discoverServices())
         .transform(_getOadService)
         .transform(_getCharacteristic)
         .transform(_openCharNotify)
-//        .listen((charList) {
+        .listen((charList) {
+          for(int i in [0, 1, 3]){
+            (charList[i]as BluetoothCharacteristic).value.listen((v){
+              print("### FFC${i+1} 监听到通知$v");
+            });
+          }
 //      (charList as List<BluetoothCharacteristic>).forEach((char) {
-//        print(char.read().then((v) => print("#####@@@@@@@@@@@@@@@$v")));
+//        print(char.value.listen((data)=>print("###$data")));
 //      });
-//          print(charList);
-//    }
-//    )
+    }
+    )
     ;
 
 //    charList.
@@ -91,16 +98,35 @@ class OadPage extends StatelessWidget {
       List<BluetoothCharacteristic>>.fromHandlers(handleData: (charList, sink) {
     // 这里写一个 打开并监听 特征 的通知的方法, 如果出错, 考虑等监听出结果后再sink.add
 
-    for (int i in [0, 1, 3]) {
-      print("oad_page ###打开第${i + 1}个通知");
-      charList[i].setNotifyValue(true);
-//      charList[i].value.asBroadcastStream();
-//      charList[i].value.listen((event) {
-//        print("oad_page ###从 FFC${i + 1} 中读取到$event");
-//      });
-    }
+    charList.forEach((char){
+      String s = char.uuid.toString().substring(7,8);
+      switch(s){
+        case "1":
+        case "2":
+        case "4":
+          char.value.listen((d){
+            print("监听到 FFC$s 的消息: $d");
+          });
+      }
+    });
 
-//    charList[0].write([
+//    for (int i in [0, 1, 3]) {
+//      print("oad_page ###打开第${i + 1}个通知");
+//      charList[i].setNotifyValue(true);
+////      charList[i].value.asBroadcastStream();
+////      charList[i].value.listen((event) {
+////        print("oad_page ###从 FFC${i + 1} 监听到通知 $event");
+////      });
+//    }
+
+    final List<int> data = [
+      1, 3, 55, 22];
+//      0x06, 0x78, 0xff,0xff,
+//      0x00, 0x00, 0xb4, 0x30,
+//      0x45,0x45,0x45,0x45,
+//      0x00,0x00, 0x01, 0xff,
+//    ];
+//    final List<int> data = [
 //      6,
 //      120,
 //      255,
@@ -116,8 +142,11 @@ class OadPage extends StatelessWidget {
 //      0,
 //      1,
 //      255,
-//    ]);
-//    print("oad_page ### 向ffc1 写入 元文件 第一行完毕");
+//    ]
+
+
+    charList[0].write(data);
+    print("oad_page ### 向ffc1 写入 元文件 第一行完毕");
 
 
     sink.add(charList);
@@ -178,17 +207,14 @@ class OadPage extends StatelessWidget {
       ]);
       print("oad_page ### 向ffc1 写入 元文件 第一行完毕");
       return charList;
+    }).then((charList){
+      charList[1].value.listen((notify){
+        print("oad_page ########## 收到通知: $notify");
+      });
     })
 //        .then((charList){
 //      return Future.delayed(Duration(seconds: 1)).then((v)=>v);
 //      return charList;
-//    })
-//        .then((charList){
-//      print("oad_page ### 开始读取");
-//      charList[1].read().then((v){
-//        v.forEach((v)=>print("读取的内容### $v"));
-//      });
-//      print("oad_page ### 读取完毕");
 //    })
         ;
   }

@@ -102,7 +102,11 @@ class DeviceInfoPage extends StatelessWidget {
                       c.setNotifyValue(!c.isNotifying);
                       //todo 展示. 或使用.....
                       c.value.listen(
-                          (v) => print("######====== 接受到数据 =====#######$v"));
+//                          (v) => print("######====== 接受到数据 =====#######$v")
+                          (v){
+                            v.forEach((v)=>print("监听到=> $v"));
+                          }
+                          );
                     },
                     //todo 描述...
                     descriptorTiles: c.descriptors
