@@ -7,10 +7,10 @@ import 'package:my_blue/widgets/descriptor_tile.dart';
 import 'package:my_blue/widgets/service_tile.dart';
 
 /// 设备详情页
-class DeviceScreen extends StatelessWidget {
+class DeviceInfoPage extends StatelessWidget {
   final BluetoothDevice device;
 
-  const DeviceScreen({Key key, this.device}) : super(key: key);
+  const DeviceInfoPage({Key key, this.device}) : super(key: key);
 
   /// 第一行, 表示设备状态的 tile
   Widget _buildDeviceStateTileTrailing(BuildContext context) {
@@ -60,25 +60,42 @@ class DeviceScreen extends StatelessWidget {
                     //写入数据
                     /// ================== 发送数据 ===========
                     onWritePressed: () {
-                      const List<int> test = [
-                        13,
-                        10,
-                      ];
-                      int v = 0;
-                      new Timer.periodic(const Duration(milliseconds: 100),
-                          // 要求20个字节一包
-                          (Timer t) {
-                        c.write(
-                            [
-                                  (v ~/ 1000) + 48,
-                                  (v ~/ 100) % 10 + 48,
-                                  (v ~/ 10) % 10 + 48,
-                                  v % 10 + 48
-                                ] +
-                                test,
-                            withoutResponse: true);
-                        v++;
-                      });
+                      c.write([
+                        6,
+                        120,
+                        255,
+                        255,
+                        0,
+                        0,
+                        180,
+                        48,
+                        69,
+                        69,
+                        69,
+                        0,
+                        0,
+                        1,
+                        255,
+                      ]);
+//                      const List<int> test = [
+//                        13,
+//                        10,
+//                      ];
+//                      int v = 0;
+//                      new Timer.periodic(const Duration(milliseconds: 100),
+//                          // 要求20个字节一包
+//                          (Timer t) {
+//                        c.write(
+//                            [
+//                                  (v ~/ 1000) + 48,
+//                                  (v ~/ 100) % 10 + 48,
+//                                  (v ~/ 10) % 10 + 48,
+//                                  v % 10 + 48
+//                                ] +
+//                                test,
+//                            withoutResponse: true);
+//                        v++;
+//                      });
                     },
                     onNotificationPressed: () {
 //                      c.read().then((v)=>print("测试可能读取到: $v"));

@@ -4,10 +4,10 @@ import 'package:flutter_blue/flutter_blue.dart';
 ///
 /// 蓝牙关闭时的页面
 /// //todo 为蓝牙图标添加 点击事件, 以快速开启蓝牙
-class BluetoothOffScreen extends StatelessWidget {
+class BluetoothOffPage extends StatelessWidget {
   final BluetoothState bleState;
 
-  const BluetoothOffScreen({Key key, this.bleState}) : super(key: key);
+  const BluetoothOffPage({Key key, this.bleState}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
