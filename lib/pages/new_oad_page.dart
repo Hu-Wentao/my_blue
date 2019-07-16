@@ -65,7 +65,7 @@ class NewOadPage extends StatelessWidget {
           print(
               "#@# 向 ${oadStreamOrder.notifyInfo.charKeyUuid}发送数据， index： $index");
           // 将索引号加上
-          char.write(value + binContent[index++], withoutResponse: true);
+          char.write(value + binContent[index], withoutResponse: true);
           break;
         case OadState.success:
           // TODO: Handle this case.
@@ -284,7 +284,6 @@ class NewOadPage extends StatelessWidget {
     // 排除不满足条件的调用
     if (!["abf1", "ffc1"].contains(c.uuid.toString().substring(4, 8))) return;
     print("正在发送头部文件到 ${c.uuid.toString()}");
-
     c.write(headFile);
   }
 }
@@ -357,7 +356,6 @@ class CharacteristicTile extends StatelessWidget {
 //        print("构建方法被执行了.... 会添加新的value....");
         notifyController.sink.add(NotifyInfo(
             char: characteristic, charKeyUuid: keyUuid, notifyValue: value));
-
         /// ------------------------------- 加入流
         return NoneBorderColorExpansionTile(
           title: ListTile(
@@ -412,7 +410,6 @@ class NotifyInfo {
   BluetoothCharacteristic char;
 
   NotifyInfo({this.char, this.charKeyUuid, this.notifyValue});
-
   @override
   toString() {
     return "From: ${char.uuid.toString()} Key UUID : $charKeyUuid, Notify: $notifyValue";
