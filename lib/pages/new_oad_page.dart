@@ -46,21 +46,31 @@ class NewOadPage extends StatelessWidget {
     device.discoverServices();
     ////////
     oadController.stream.listen((oadStreamOrder) {
-      BluetoothCharacteristic char = oadStreamOrder.notifyInfo.char;
+      BluetoothCharacteristic char = oadStreamOrder?.notifyInfo?.char;
+
       switch (oadStreamOrder.oadState) {
         case OadState.startOad:
-          print("获取 binContent 然后 将头文件写入ffc1");
+          print("#@# 获取 binContent 然后 将头文件写入ffc1");
           _getContent().then((content) {
             binContent = content;
           }).then((v) {
+            print(
+                "正在向${oadStreamOrder.notifyInfo.charKeyUuid}发送${binContent[0]}");
             char.write(binContent[0], withoutResponse: true);
           });
           break;
         case OadState.sendData:
-          print("发送数据， count： $count");
-          char.write(binContent[count++], withoutResponse: true);
+          List<int> value = oadStreamOrder.notifyInfo.notifyValue;
+          int index = value[0] + value[1] * 256;
+          print(
+              "#@# 向 ${oadStreamOrder.notifyInfo.charKeyUuid}发送数据， index： $index");
+          // 将索引号加上
+          char.write(value + binContent[index++], withoutResponse: true);
           break;
-        case OadState.end:
+        case OadState.success:
+          // TODO: Handle this case.
+          break;
+        case OadState.error:
           // TODO: Handle this case.
           break;
       }
@@ -75,24 +85,39 @@ class NewOadPage extends StatelessWidget {
       return canShow;
     }).listen((notify) {
 //      oadController.sink.add(notifyInfo);
-      print("# # # 收到回传消息: $notify, |||{c.uuid.toString()} ===========");
+//      print("# # # 收到回传消息: $notify, |||{c.uuid.toString()} ===========");
+      OadStreamOrder order;
       switch (notify.charKeyUuid) {
         case "abf1":
         case "ffc1":
+          print("从 ffc1 中监听到信息： ${notify.notifyValue}");
+
           break;
         case "ffc2":
-//        notifyInfo.notifyValue
-          print("从ffc2中监听到信息： ${notify.notifyValue}");
-//        notifyInfo.char.write(notifyInfo.notifyValue+binContent[(ttt++)]);
-          oadController.sink.add(
-              OadStreamOrder(oadState: OadState.sendData, notifyInfo: notify));
+          print("从 ffc2 中监听到信息： ${notify.notifyValue}");
+          order = OadStreamOrder(OadState.sendData, notify);
           break;
         case "ffc4":
+          print("从 ffc4 中监听到信息： ${notify.notifyValue}");
+
+          switch (notify.notifyValue[0]) {
+            case 0:
+              order = OadStreamOrder(OadState.success, null);
+              break;
+            case 1:
+            case 2:
+            case 3:
+              order = OadStreamOrder(OadState.error, notify);
+              break;
+          }
+          // 从ffc4中获取到消息后，就不需要再传输数据了， 可以关闭流
+          oadController.close();
           break;
       }
+      oadController.sink.add(order);
     });
 
-    ///逐个延时开启通知//////////////////////////////////////////////////////////////////////////
+    //逐个延时开启通知//////////////////////////////////////////////////////////////////////////
     int duration = 1;
     openNotify.stream.where((char) {
       if ([
@@ -147,7 +172,7 @@ class NewOadPage extends StatelessWidget {
               initialData: 1,
               builder: (c, snap) {
                 return LinearProgressIndicator(
-                  //todo edit
+                  //todo edit................................进度条
                   value: 0.3,
                 );
               },
@@ -207,9 +232,8 @@ class NewOadPage extends StatelessWidget {
             return CharacteristicTile(
               characteristic: c,
               onReadPressed: () => c.read(),
-              onWritePressed: () => oadController.sink.add(OadStreamOrder(
-                  oadState: OadState.startOad,
-                  notifyInfo: NotifyInfo(char: c))),
+              onWritePressed: () => oadController.sink
+                  .add(OadStreamOrder(OadState.startOad, NotifyInfo(char: c))),
 //              onWritePressed: _logic(c),
               onNotificationPressed: () {
 //                print("当前char: ${c.uuid.toString().substring(4,8)} 通知是否打开: ${c.isNotifying}");
@@ -399,12 +423,13 @@ class OadStreamOrder {
   OadState oadState;
   NotifyInfo notifyInfo;
 
-  OadStreamOrder({this.oadState, this.notifyInfo});
+  OadStreamOrder(this.oadState, this.notifyInfo);
 }
 
 enum OadState {
   startOad, // 加载oad文件， 发送头文件
 //  sendHead, // 发送头文件 ffc1
   sendData, // 发送数据 ffc2
-  end, // 结束
+  success, // 成功并结束
+  error, //接受的数据包块号与请求的数据块不匹配, crc错误， flash无法打开之类的错误
 }
