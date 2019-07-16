@@ -220,7 +220,7 @@ class OadPage extends StatelessWidget {
     ];
     assert(sOadSerCharList.length > 0);
 
-    sOadSerCharList[0].write(head);
+    sOadSerCharList[0].write(head, withoutResponse: true);
   }
 }
 

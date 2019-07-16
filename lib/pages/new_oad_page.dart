@@ -8,19 +8,38 @@ import 'package:my_blue/widgets/radius_container_widget.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 StreamController<NotifyInfo> notifyController = StreamController.broadcast();
+StreamController<BluetoothCharacteristic> openNotify = StreamController();
 
 //NotifyInfo temp;
 
 class NewOadPage extends StatelessWidget {
   final BluetoothDevice device;
+  final List<int> headFile = [
+    0x06,
+    0x78,
+    0xff,
+    0xff,
+    0x00,
+    0x00,
+    0xb4,
+    0x30,
+    0x45,
+    0x45,
+    0x45,
+    0x45,
+    0x00,
+    0x00,
+    0x01,
+    0xff,
+  ];
 
 //  AssetBundle bundle;
-  Future binFile;
+//  Future binFile;
 
   NewOadPage({Key key, this.device}) : super(key: key) {
     device.discoverServices();
 //    bundle = rootBundle;
-    binFile = _getBin();
+//    binFile = _getBin();
 
     /////////////////////////////////////////////////////////////////////////////
     NotifyInfo temp; // 保存上一次的NotifyInfo, 防止收到两个一样的
@@ -31,7 +50,7 @@ class NewOadPage extends StatelessWidget {
       return canShow;
     }).listen((notifyInfo) {
       print(
-          "# # # 收到回传消息: $notifyInfo, ||| {c.uuid.toString()} ============================================");
+          "# # # 收到回传消息: $notifyInfo, |||{c.uuid.toString()} ============================================");
       switch (notifyInfo.charKeyUuid) {
         case "abf1":
         case "ffc1":
@@ -41,6 +60,26 @@ class NewOadPage extends StatelessWidget {
         case "ffc4":
           break;
       }
+    });
+
+    ///逐个延时开启通知//////////////////////////////////////////////////////////////////////////
+    int duration = 1;
+    openNotify.stream.where((char) {
+      if ([
+        "abf1",
+        "ffc1",
+        "ffc2",
+        "ffc4",
+        "abf4",
+      ].contains(char.uuid.toString().substring(4, 8))) {
+        return !char.isNotifying;
+      }
+      return false;
+    }).listen((char) {
+      print("监听到请求打开 notify 消息 duration: $duration");
+      // todo try 此处会抛出异常, 这是因为没有逐个打开通知(或 打开间隔过短) 导致的
+      Future.delayed(Duration(milliseconds: ((duration++) * 500)))
+          .then((v) => char.setNotifyValue(true));
     });
   }
 
@@ -116,11 +155,10 @@ class NewOadPage extends StatelessWidget {
             return CharacteristicTile(
               characteristic: c,
               onReadPressed: () => c.read(),
-              onWritePressed: _logic(c),
-
-              /// 写入 数据
+              onWritePressed: ()=>c.write(headFile, withoutResponse: true),
+//              onWritePressed: _logic(c),
               onNotificationPressed: () {
-                print("当前char: ${c.uuid.toString().substring(4,8)} 通知是否打开: ${c.isNotifying}");
+//                print("当前char: ${c.uuid.toString().substring(4,8)} 通知是否打开: ${c.isNotifying}");
                 c.setNotifyValue(!c.isNotifying);
               },
             );
@@ -131,8 +169,8 @@ class NewOadPage extends StatelessWidget {
   }
 
   _logic(BluetoothCharacteristic c) {
-//  _logic() {
     print("# # # logic 方法被执行, ${c.uuid.toString()}");
+    _sendHead(c);
   }
 
   Widget _buildDeviceStateTileTrailing(BuildContext context) {
@@ -161,6 +199,15 @@ class NewOadPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+// 发送头部文件到 ffc1
+  void _sendHead(BluetoothCharacteristic c) {
+    // 排除不满足条件的调用
+    if (!["abf1", "ffc1"].contains(c.uuid.toString().substring(4, 8))) return;
+    print("正在发送头部文件到 ${c.uuid.toString()}");
+
+    c.write(headFile);
   }
 }
 
@@ -217,22 +264,8 @@ class CharacteristicTile extends StatelessWidget {
       this.onNotificationPressed,
       this.sendBox})
       : super(key: key) {
-    final String k = characteristic.uuid.toString().substring(4, 8);
-    if ([
-      "abf1",
-      "ffc1",
-      "ffc2",
-      "ffc4",
-      "abf4",
-    ].contains(k)) {
-      if (!characteristic.isNotifying) {
-        print("当前正在开启 ${characteristic.uuid} 的通知");
-        characteristic.setNotifyValue(true);
-//        Future.delayed(const Duration(seconds: 1))
-//            .then((v) => characteristic.setNotifyValue(true));
-      }
-      print("特征$k的通知打开了###");
-    }
+    // 开启通知
+    openNotify.sink.add(characteristic);
   }
 
   @override

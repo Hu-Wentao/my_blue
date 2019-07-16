@@ -22,9 +22,9 @@ class ScanResultTile extends StatelessWidget {
     final String deviceName = result.device.name;
     final String serviceUuids = result.advertisementData.serviceUuids.join(",");
 
-    print("######## ScanResultTile ############################");
-    print("advertiseName 广播名: $advertiseName");
-    print("deviceName 设备名称: $deviceName");
+//    print("######## ScanResultTile ############################");
+//    print("advertiseName 广播名: $advertiseName");
+//    print("deviceName 设备名称: $deviceName");
 
     return NoneBorderColorExpansionTile(
       title: _buildTitle(context, deviceName),
