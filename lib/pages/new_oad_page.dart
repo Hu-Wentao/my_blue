@@ -46,8 +46,9 @@ class NewOadPage extends StatelessWidget {
     device.discoverServices();
     ////////
     oadController.stream.listen((oadStreamOrder) {
-      BluetoothCharacteristic char = oadStreamOrder?.notifyInfo?.char;
-
+      print("oadController 监听到了事件.....");
+      if (oadStreamOrder?.notifyInfo == null) return;
+      BluetoothCharacteristic char = oadStreamOrder.notifyInfo.char;
       switch (oadStreamOrder.oadState) {
         case OadState.startOad:
           print("#@# 获取 binContent 然后 将头文件写入ffc1");
@@ -60,18 +61,21 @@ class NewOadPage extends StatelessWidget {
           });
           break;
         case OadState.sendData:
+          //todo
           List<int> value = oadStreamOrder.notifyInfo.notifyValue;
           int index = value[0] + value[1] * 256;
           print(
-              "#@# 向 ${oadStreamOrder.notifyInfo.charKeyUuid}发送数据， index： $index");
+              "#@# 向 ${oadStreamOrder.notifyInfo.charKeyUuid}发送数据， index： $index, 内容: ${value + binContent[index]}");
           // 将索引号加上
           char.write(value + binContent[index], withoutResponse: true);
           break;
         case OadState.success:
-          // TODO: Handle this case.
+          print("成功....");
+          oadController.close();
           break;
         case OadState.error:
-          // TODO: Handle this case.
+          print("出错........");
+          oadController.close();
           break;
       }
     });
@@ -95,7 +99,12 @@ class NewOadPage extends StatelessWidget {
           break;
         case "ffc2":
           print("从 ffc2 中监听到信息： ${notify.notifyValue}");
-          order = OadStreamOrder(OadState.sendData, notify);
+          if (notify.notifyValue.length > 2) {
+            print("从ffc2 中收到了 长度大于二的value, 目前的处理方式是忽略这条信息");
+//            order = OadStreamOrder(OadState.error, notify);
+          } else {
+            order = OadStreamOrder(OadState.sendData, notify);
+          }
           break;
         case "ffc4":
           print("从 ffc4 中监听到信息： ${notify.notifyValue}");
@@ -356,6 +365,7 @@ class CharacteristicTile extends StatelessWidget {
 //        print("构建方法被执行了.... 会添加新的value....");
         notifyController.sink.add(NotifyInfo(
             char: characteristic, charKeyUuid: keyUuid, notifyValue: value));
+
         /// ------------------------------- 加入流
         return NoneBorderColorExpansionTile(
           title: ListTile(
@@ -410,6 +420,7 @@ class NotifyInfo {
   BluetoothCharacteristic char;
 
   NotifyInfo({this.char, this.charKeyUuid, this.notifyValue});
+
   @override
   toString() {
     return "From: ${char.uuid.toString()} Key UUID : $charKeyUuid, Notify: $notifyValue";
