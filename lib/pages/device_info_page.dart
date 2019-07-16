@@ -183,13 +183,11 @@ class DeviceInfoPage extends StatelessWidget {
             String text;
             switch (snapshot.data) {
               case BluetoothDeviceState.connected:
-
                 /// 连接设备
                 onPressed = () => device.disconnect();
                 text = '断开';
                 break;
               case BluetoothDeviceState.disconnected:
-
                 /// 断开设备
                 onPressed = () => device.connect();
                 text = '连接';
@@ -203,7 +201,6 @@ class DeviceInfoPage extends StatelessWidget {
                 break;
             }
             return FlatButton(
-
                 ///########################################### appBar 上的按钮
                 onPressed: onPressed,
                 child: Text(

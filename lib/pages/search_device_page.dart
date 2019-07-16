@@ -6,6 +6,7 @@ import 'package:my_blue/widgets/scan_result_tile.dart';
 import 'package:my_blue/widgets/text_divider_widget.dart';
 
 import 'device_info_page.dart';
+import 'new_oad_page.dart';
 import 'oad_page.dart';
 
 ///
@@ -153,6 +154,6 @@ class SearchDevicePage extends StatelessWidget {
     return () => Navigator.of(context).push(MaterialPageRoute(
         builder: (context) =>
             // 切换页面
-            isOAD ? OadPage(device: device) : DeviceInfoPage(device: device)));
+            isOAD ? NewOadPage(device: device) : DeviceInfoPage(device: device)));
   }
 }
