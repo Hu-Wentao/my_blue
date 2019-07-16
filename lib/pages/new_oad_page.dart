@@ -11,16 +11,12 @@ StreamController<NotifyInfo> notifyController = StreamController.broadcast();
 StreamController<BluetoothCharacteristic> openNotify = StreamController();
 
 // 传输进度
-StreamController<int> transferProcess = StreamController();
+StreamController<double> transferProcess = StreamController();
 
 // 控制升级流程
 StreamController<OadStreamOrder> oadController = StreamController.broadcast();
 
 List<List<int>> binContent;
-
-// todo del 发送时临时计数， 以后考虑使用返回值
-int count = 0;
-
 class NewOadPage extends StatelessWidget {
   final BluetoothDevice device;
   final List<int> headFile = [
@@ -61,9 +57,13 @@ class NewOadPage extends StatelessWidget {
           });
           break;
         case OadState.sendData:
-          //todo
+
           List<int> value = oadStreamOrder.notifyInfo.notifyValue;
           int index = value[0] + value[1] * 256;
+
+          // todo 进度条写死....................
+          transferProcess.sink.add(index/2492);
+
           print(
               "#@# 向 ${oadStreamOrder.notifyInfo.charKeyUuid}发送数据， index： $index, 内容: ${value + binContent[index]}");
           // 将索引号加上
@@ -176,13 +176,12 @@ class NewOadPage extends StatelessWidget {
         child: Column(
           children: <Widget>[
             // 展示传输进度
-            StreamBuilder<int>(
+            StreamBuilder<double>(
               stream: transferProcess.stream,
               initialData: 1,
               builder: (c, snap) {
                 return LinearProgressIndicator(
-                  //todo edit................................进度条
-                  value: 0.3,
+                  value: snap.data,
                 );
               },
             ),
@@ -243,7 +242,6 @@ class NewOadPage extends StatelessWidget {
               onReadPressed: () => c.read(),
               onWritePressed: () => oadController.sink
                   .add(OadStreamOrder(OadState.startOad, NotifyInfo(char: c))),
-//              onWritePressed: _logic(c),
               onNotificationPressed: () {
 //                print("当前char: ${c.uuid.toString().substring(4,8)} 通知是否打开: ${c.isNotifying}");
                 c.setNotifyValue(!c.isNotifying);
@@ -335,7 +333,6 @@ class ServiceTile extends StatelessWidget {
 class CharacteristicTile extends StatelessWidget {
   final BluetoothCharacteristic characteristic;
 
-//  final List<DescriptorTile> descriptorTiles;
   final TextField sendBox; // 发送消息输入框
   final VoidCallback onReadPressed;
   final VoidCallback onWritePressed;
@@ -344,7 +341,6 @@ class CharacteristicTile extends StatelessWidget {
   CharacteristicTile(
       {Key key,
       this.characteristic,
-//        this.descriptorTiles,
       this.onReadPressed,
       this.onWritePressed,
       this.onNotificationPressed,
