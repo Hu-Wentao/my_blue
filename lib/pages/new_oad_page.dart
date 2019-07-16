@@ -13,6 +13,13 @@ StreamController<BluetoothCharacteristic> openNotify = StreamController();
 // 传输进度
 StreamController<int> transferProcess = StreamController();
 
+// 控制升级流程
+StreamController<OadStreamOrder> oadController = StreamController.broadcast();
+
+List<List<int>> binContent;
+
+// todo del 发送时临时计数， 以后考虑使用返回值
+int count = 0;
 
 class NewOadPage extends StatelessWidget {
   final BluetoothDevice device;
@@ -34,14 +41,30 @@ class NewOadPage extends StatelessWidget {
     0x01,
     0xff,
   ];
-  List binContent;
-
-
-  //todo del 作为消息的索引
-  int ttt = 0;
 
   NewOadPage({Key key, this.device}) : super(key: key) {
     device.discoverServices();
+    ////////
+    oadController.stream.listen((oadStreamOrder) {
+      BluetoothCharacteristic char = oadStreamOrder.notifyInfo.char;
+      switch (oadStreamOrder.oadState) {
+        case OadState.startOad:
+          print("获取 binContent 然后 将头文件写入ffc1");
+          _getContent().then((content) {
+            binContent = content;
+          }).then((v) {
+            char.write(binContent[0], withoutResponse: true);
+          });
+          break;
+        case OadState.sendData:
+          print("发送数据， count： $count");
+          char.write(binContent[count++], withoutResponse: true);
+          break;
+        case OadState.end:
+          // TODO: Handle this case.
+          break;
+      }
+    });
 
     /////////////////////////////////////////////////////////////////////////////
     NotifyInfo temp; // 保存上一次的NotifyInfo, 防止收到两个一样的
@@ -50,20 +73,19 @@ class NewOadPage extends StatelessWidget {
       bool canShow = temp != n;
       temp = n;
       return canShow;
-    }).listen((notifyInfo) {
-      print(
-          "# # # 收到回传消息: $notifyInfo, |||{c.uuid.toString()} ============================================");
-      switch (notifyInfo.charKeyUuid) {
+    }).listen((notify) {
+//      oadController.sink.add(notifyInfo);
+      print("# # # 收到回传消息: $notify, |||{c.uuid.toString()} ===========");
+      switch (notify.charKeyUuid) {
         case "abf1":
         case "ffc1":
           break;
         case "ffc2":
-//          notifyInfo.notifyValue
-        print("从ffc2中监听到信息： ${notifyInfo.notifyValue}");
-        notifyInfo.char.write(notifyInfo.notifyValue+binContent[(ttt++)]);
-
-
-        transferProcess.sink.add(ttt);
+//        notifyInfo.notifyValue
+          print("从ffc2中监听到信息： ${notify.notifyValue}");
+//        notifyInfo.char.write(notifyInfo.notifyValue+binContent[(ttt++)]);
+          oadController.sink.add(
+              OadStreamOrder(oadState: OadState.sendData, notifyInfo: notify));
           break;
         case "ffc4":
           break;
@@ -92,20 +114,19 @@ class NewOadPage extends StatelessWidget {
   }
 
   Future<File> _getBinFile() async {
-    Directory dir = await
-    getApplicationDocumentsDirectory();
+    Directory dir = await getApplicationDocumentsDirectory();
 
     print("打印dir： $dir");
-    return new File(dir.path+"/test.bin");
+    return new File(dir.path + "/test.bin");
   }
 
-  _getContent() async{
+  Future<List<List<int>>> _getContent() async {
     File f = await _getBinFile();
 
     List<int> content = await f.readAsBytes();
     List<List<int>> tmp = [];
-    for(int i =0; i<content.length; i+=16){
-      tmp.add(content.sublist(i,i+16));
+    for (int i = 0; i < content.length; i += 16) {
+      tmp.add(content.sublist(i, i + 16));
     }
     return tmp;
   }
@@ -122,15 +143,15 @@ class NewOadPage extends StatelessWidget {
           children: <Widget>[
             // 展示传输进度
             StreamBuilder<int>(
-          stream: transferProcess.stream,
+              stream: transferProcess.stream,
               initialData: 1,
-              builder: (c, snap){
+              builder: (c, snap) {
                 return LinearProgressIndicator(
                   //todo edit
                   value: 0.3,
                 );
               },
-        ),
+            ),
 
             // 展示蓝牙设备状态
             StreamBuilder<BluetoothDeviceState>(
@@ -186,7 +207,9 @@ class NewOadPage extends StatelessWidget {
             return CharacteristicTile(
               characteristic: c,
               onReadPressed: () => c.read(),
-              onWritePressed: ()=>c.write(headFile, withoutResponse: true),
+              onWritePressed: () => oadController.sink.add(OadStreamOrder(
+                  oadState: OadState.startOad,
+                  notifyInfo: NotifyInfo(char: c))),
 //              onWritePressed: _logic(c),
               onNotificationPressed: () {
 //                print("当前char: ${c.uuid.toString().substring(4,8)} 通知是否打开: ${c.isNotifying}");
@@ -239,8 +262,6 @@ class NewOadPage extends StatelessWidget {
     print("正在发送头部文件到 ${c.uuid.toString()}");
 
     c.write(headFile);
-
-    binContent = await _getContent();
   }
 }
 
@@ -307,8 +328,7 @@ class CharacteristicTile extends StatelessWidget {
       stream: characteristic.value, // 读取结果
       initialData: characteristic.lastValue, // 存放上一次的结果
       builder: (c, snapshot) {
-        final keyUuid =
-            characteristic.uuid.toString().substring(4, 8);
+        final keyUuid = characteristic.uuid.toString().substring(4, 8);
         final value = snapshot.data;
 //        print("构建方法被执行了.... 会添加新的value....");
         notifyController.sink.add(NotifyInfo(
@@ -373,14 +393,18 @@ class NotifyInfo {
   toString() {
     return "From: ${char.uuid.toString()} Key UUID : $charKeyUuid, Notify: $notifyValue";
   }
+}
 
-//  bool operator+(NotifyInfo ps){
-//    if (this.charKeyUuid == ps.charKeyUuid) {
-//      return true;
-//    }
-//    return false;
-//  }
-//  bool operator == (const NotifyInfo info){
-//    return false;
-//  }
+class OadStreamOrder {
+  OadState oadState;
+  NotifyInfo notifyInfo;
+
+  OadStreamOrder({this.oadState, this.notifyInfo});
+}
+
+enum OadState {
+  startOad, // 加载oad文件， 发送头文件
+//  sendHead, // 发送头文件 ffc1
+  sendData, // 发送数据 ffc2
+  end, // 结束
 }
