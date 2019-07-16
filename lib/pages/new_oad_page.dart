@@ -1,16 +1,18 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:my_blue/widgets/none_border_color_expansion_tile.dart';
 import 'package:my_blue/widgets/radius_container_widget.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
 
 StreamController<NotifyInfo> notifyController = StreamController.broadcast();
 StreamController<BluetoothCharacteristic> openNotify = StreamController();
 
-//NotifyInfo temp;
+// 传输进度
+StreamController<int> transferProcess = StreamController();
+
 
 class NewOadPage extends StatelessWidget {
   final BluetoothDevice device;
@@ -32,14 +34,14 @@ class NewOadPage extends StatelessWidget {
     0x01,
     0xff,
   ];
+  List binContent;
 
-//  AssetBundle bundle;
-//  Future binFile;
+
+  //todo del 作为消息的索引
+  int ttt = 0;
 
   NewOadPage({Key key, this.device}) : super(key: key) {
     device.discoverServices();
-//    bundle = rootBundle;
-//    binFile = _getBin();
 
     /////////////////////////////////////////////////////////////////////////////
     NotifyInfo temp; // 保存上一次的NotifyInfo, 防止收到两个一样的
@@ -56,6 +58,12 @@ class NewOadPage extends StatelessWidget {
         case "ffc1":
           break;
         case "ffc2":
+//          notifyInfo.notifyValue
+        print("从ffc2中监听到信息： ${notifyInfo.notifyValue}");
+        notifyInfo.char.write(notifyInfo.notifyValue+binContent[(ttt++)]);
+
+
+        transferProcess.sink.add(ttt);
           break;
         case "ffc4":
           break;
@@ -78,17 +86,28 @@ class NewOadPage extends StatelessWidget {
     }).listen((char) {
       print("监听到请求打开 notify 消息 duration: $duration");
       // todo try 此处会抛出异常, 这是因为没有逐个打开通知(或 打开间隔过短) 导致的
-      Future.delayed(Duration(milliseconds: ((duration++) * 500)))
+      Future.delayed(Duration(milliseconds: ((duration++) * 800)))
           .then((v) => char.setNotifyValue(true));
     });
   }
 
-  _getBin() async {
-    await PermissionHandler().requestPermissions([PermissionGroup.storage]);
-    await PermissionHandler().checkPermissionStatus(PermissionGroup.storage);
-    await PermissionHandler()
-        .shouldShowRequestPermissionRationale(PermissionGroup.storage);
-    return rootBundle.load("assset/test.bin");
+  Future<File> _getBinFile() async {
+    Directory dir = await
+    getApplicationDocumentsDirectory();
+
+    print("打印dir： $dir");
+    return new File(dir.path+"/test.bin");
+  }
+
+  _getContent() async{
+    File f = await _getBinFile();
+
+    List<int> content = await f.readAsBytes();
+    List<List<int>> tmp = [];
+    for(int i =0; i<content.length; i+=16){
+      tmp.add(content.sublist(i,i+16));
+    }
+    return tmp;
   }
 
   @override
@@ -101,7 +120,19 @@ class NewOadPage extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            // 第一行, 展示蓝牙设备状态
+            // 展示传输进度
+            StreamBuilder<int>(
+          stream: transferProcess.stream,
+              initialData: 1,
+              builder: (c, snap){
+                return LinearProgressIndicator(
+                  //todo edit
+                  value: 0.3,
+                );
+              },
+        ),
+
+            // 展示蓝牙设备状态
             StreamBuilder<BluetoothDeviceState>(
               stream: device.state,
               initialData: BluetoothDeviceState.connecting,
@@ -202,12 +233,14 @@ class NewOadPage extends StatelessWidget {
   }
 
 // 发送头部文件到 ffc1
-  void _sendHead(BluetoothCharacteristic c) {
+  Future _sendHead(BluetoothCharacteristic c) async {
     // 排除不满足条件的调用
     if (!["abf1", "ffc1"].contains(c.uuid.toString().substring(4, 8))) return;
     print("正在发送头部文件到 ${c.uuid.toString()}");
 
     c.write(headFile);
+
+    binContent = await _getContent();
   }
 }
 
@@ -275,7 +308,7 @@ class CharacteristicTile extends StatelessWidget {
       initialData: characteristic.lastValue, // 存放上一次的结果
       builder: (c, snapshot) {
         final keyUuid =
-            characteristic.uuid.toString().toUpperCase().substring(4, 8);
+            characteristic.uuid.toString().substring(4, 8);
         final value = snapshot.data;
 //        print("构建方法被执行了.... 会添加新的value....");
         notifyController.sink.add(NotifyInfo(
