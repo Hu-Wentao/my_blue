@@ -72,7 +72,7 @@ class ScanResultTile extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           )
         : Text(
-      result.device.id.toString(),
+            result.device.id.toString(),
 //            "N/A",
             overflow: TextOverflow.ellipsis,
           );
@@ -87,7 +87,8 @@ class ScanResultTile extends StatelessWidget {
               deviceName,
               Wrap(children: [
                 // 信号强度
-                Text("信号强度：${result.rssi.toString()}",
+                Text(
+                  "信号强度：${result.rssi.toString()}",
 //                Text(
 //                  result.device.id.toString(),
 ////                    overflow: TextOverflow.ellipsis,
